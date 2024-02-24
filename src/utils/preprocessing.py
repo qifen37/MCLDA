@@ -12,12 +12,10 @@ def load_data(filename):
     raw_text = pd.read_csv(filename,usecols=[0], encoding='ISO-8859-1')
     raw_target = pd.read_csv(filename,usecols=[1], encoding='ISO-8859-1')
     raw_label = pd.read_csv(filename,usecols=[2], encoding='ISO-8859-1')
-    # seen = pd.read_csv(filename,usecols=[3], encoding='ISO-8859-1')#非vast数据注释掉
-    # label = pd.DataFrame.replace(raw_label,['AGAINST','FAVOR','NONE'], [0,1,2])
-    # label = pd.DataFrame.replace(raw_label, ['CONTRADICT', 'ENTAILMENT', 'NEUTRAL'], [0, 1, 2])
-    concat_text = pd.concat([raw_text, raw_label, raw_target], axis=1)#非vast数据seen去掉
+
+    concat_text = pd.concat([raw_text, raw_label, raw_target], axis=1)
     # concat_text.rename(columns={'Stance 1':'Stance','Target 1':'Target'}, inplace=True)
-    # if 'train' not in filename:#非vast数据注释掉
+    # if 'train' not in filename:
     #     concat_text = concat_text[concat_text['seen?'] != 0] # remove few-shot labels
     
     return concat_text
