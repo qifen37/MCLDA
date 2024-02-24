@@ -77,146 +77,6 @@ class Encoder(BartPretrainedModel):
         return encoder_outputs
 
 
-# 两个bart
-# class bart_classifier(nn.Module):
-#
-#     def __init__(self, num_labels, model_select, gen, dropout, dropoutrest):
-#
-#         super(bart_classifier, self).__init__()
-#
-#         self.dropout = nn.Dropout(dropout) if gen==0 else nn.Dropout(dropoutrest)
-#         self.relu = nn.ReLU()
-#
-#         self.config = BartConfig.from_pretrained('facebook/bart-large-mnli')
-#         self.bart = Encoder.from_pretrained("facebook/bart-large-mnli")
-#         self.bart.pooler = None
-#         self.linear = nn.Linear(self.bart.config.hidden_size*2, self.bart.config.hidden_size)
-#         self.out = nn.Linear(self.bart.config.hidden_size, num_labels)
-#         self.cl_bart=Encoder.from_pretrained('facebook/bart-large-mnli')
-#         self.fc = nn.Sequential(nn.Linear(self.bart.config.hidden_size, 283), nn.Dropout(0.2),
-#                                 nn.Linear(283, num_labels))
-#         self.dropout = nn.Dropout(0.2)
-#         self.mlp = nn.Linear(self.bart.config.hidden_size, self.bart.config.hidden_size)
-#
-#     def forward(self, **kwargs):
-#
-#         x_input_ids, x_atten_masks = kwargs['input_ids'], kwargs['attention_mask']
-#         cl_input_ids = torch.cat([x_input_ids, x_input_ids], dim=0)  # shape [batch_size*2,max_len]
-#         cl_attention_mask = torch.cat([x_atten_masks, x_atten_masks], dim=0)
-#         last_hidden = self.bart(input_ids=x_input_ids, attention_mask=x_atten_masks)
-#         hidden_feats1 = self.cl_bart(input_ids=cl_input_ids,
-#                                                                         attention_mask=cl_attention_mask,
-#                                                                         output_hidden_states=True,
-#                                                                         return_dict=False)
-#         cls_feats1=hidden_feats1[0][:,0,:]
-#         cls_feats1 = self.mlp(cls_feats1)  # for contrastive learning
-#         features = cls_feats1.unsqueeze(1)  # batch_size*2,1,64
-#         features = F.normalize(features, dim=2)
-#         features = F.relu(features)
-#         #调整了注意力掩码中与特定结束标记对应的位置，以控制模型在处理输入序列时的注意力分布
-#         eos_token_ind = x_input_ids.eq(self.config.eos_token_id).nonzero() # tensor([[0,4],[0,5],[0,11],[1,2],[1,3],[1,6]...])
-#
-#         assert len(eos_token_ind) == 3*len(kwargs['input_ids'])
-#         b_eos = [eos_token_ind[i][1] for i in range(len(eos_token_ind)) if i%3==0]
-#         e_eos = [eos_token_ind[i][1] for i in range(len(eos_token_ind)) if (i+1)%3==0]
-#         x_atten_clone = x_atten_masks.clone().detach()
-#         for begin, end, att, att2 in zip(b_eos, e_eos, x_atten_masks, x_atten_clone):
-#             att[begin:], att2[:begin+2] = 0, 0 # att all </s> --> 0; att2 1st and 2nd </s> --> 0
-#             att[0], att2[end] = 0, 0 # <s> --> 0; 3rd </s> --> 0
-#
-#         txt_l = x_atten_masks.sum(1).to('cuda')
-#         topic_l = x_atten_clone.sum(1).to('cuda')
-#         txt_vec = x_atten_masks.type(torch.FloatTensor).to('cuda')
-#         topic_vec = x_atten_clone.type(torch.FloatTensor).to('cuda')
-#         txt_mean = torch.einsum('blh,bl->bh', last_hidden[0], txt_vec) / txt_l.unsqueeze(1)
-#         topic_mean = torch.einsum('blh,bl->bh', last_hidden[0], topic_vec) / topic_l.unsqueeze(1)
-#
-#         cat = torch.cat((txt_mean, topic_mean), dim=1)
-#         query = self.dropout(cat)
-#         linear = self.relu(self.linear(query))
-#         out = self.out(linear)
-#
-#         return out,features
-
-# 只有一个bart
-# class bart_classifier(nn.Module):
-#
-#     def __init__(self, num_labels, model_select, gen, dropout, dropoutrest):
-#         super(bart_classifier, self).__init__()
-#
-#         self.dropout = nn.Dropout(dropout) if gen == 0 else nn.Dropout(dropoutrest)
-#         self.relu = nn.ReLU()
-#
-#         self.config = BartConfig.from_pretrained('facebook/bart-large-mnli')
-#         self.bart = Encoder.from_pretrained("facebook/bart-large-mnli")
-#         self.bart.pooler = None
-#         self.linear = nn.Linear(self.bart.config.hidden_size * 2, self.bart.config.hidden_size)
-#         self.out = nn.Linear(self.bart.config.hidden_size, num_labels)
-#
-#         # self.atn = ATN()
-#     def forward(self, **kwargs):
-#         x_input_ids, x_atten_masks = kwargs['input_ids'], kwargs['attention_mask']
-#         cl_input_ids = torch.cat([x_input_ids, x_input_ids], dim=0)  # shape [batch_size*2,max_len]
-#         cl_atten_masks = torch.cat([x_atten_masks, x_atten_masks], dim=0)
-#         last_hidden = self.bart(input_ids=cl_input_ids, attention_mask=cl_atten_masks)
-#
-#         # 调整了注意力掩码中与特定结束标记对应的位置，以控制模型在处理输入序列时的注意力分布
-#         eos_token_ind = cl_input_ids.eq(
-#             self.config.eos_token_id).nonzero()  # tensor([[0,4],[0,5],[0,11],[1,2],[1,3],[1,6]...])
-#
-#         assert len(eos_token_ind) == 3 * len(cl_input_ids)
-#         b_eos = [eos_token_ind[i][1] for i in range(len(eos_token_ind)) if i % 3 == 0]
-#         e_eos = [eos_token_ind[i][1] for i in range(len(eos_token_ind)) if (i + 1) % 3 == 0]
-#         cl_atten_clone = cl_atten_masks.clone().detach()
-#         for begin, end, att, att2 in zip(b_eos, e_eos, cl_atten_masks, cl_atten_clone):
-#             att[begin:], att2[:begin + 2] = 0, 0  # att all </s> --> 0; att2 1st and 2nd </s> --> 0
-#             att[0], att2[end] = 0, 0  # <s> --> 0; 3rd </s> --> 0
-#
-#         txt_l = cl_atten_masks.sum(1).to('cuda')
-#         topic_l = cl_atten_clone.sum(1).to('cuda')
-#         txt_vec = cl_atten_masks.type(torch.FloatTensor).to('cuda')
-#         topic_vec = cl_atten_clone.type(torch.FloatTensor).to('cuda')
-#         txt_mean = torch.einsum('blh,bl->bh', last_hidden[0], txt_vec) / txt_l.unsqueeze(1)
-#         topic_mean = torch.einsum('blh,bl->bh', last_hidden[0], topic_vec) / topic_l.unsqueeze(1)
-#
-#         cat = torch.cat((txt_mean, topic_mean), dim=1)
-#         query = self.dropout(cat)
-#         linear = self.linear(query)
-#         batch_size=int(linear.shape[0]/2)
-#         linear1 = linear[:batch_size, ::]
-#         linear2 = linear[batch_size:linear.shape[0],::]
-#         linear3 = torch.add(linear1,linear2)
-#         linear3 =torch.div(linear3,2)
-#         # linear2 = linear[16:32,::]
-#         # linear3=torch.div(torch.add(linear1,linear2),2)
-#
-#         features = linear.unsqueeze(1)  # batch_size*2,1,64
-#         features = F.normalize(features, dim=2)
-#         features = F.relu(features)
-#
-#         out = self.out(self.relu(linear3))
-#
-#         return out, features
-# class ATN(nn.Module):
-#     def __init__(self) -> None:
-#         super(ATN, self).__init__()
-#         self.dropout = nn.Dropout(0.2)
-#         hidden_size=1024
-#         self.QW = nn.Linear(hidden_size, hidden_size)
-#         self.KW = nn.Linear(hidden_size, hidden_size)
-#         self.VW = nn.Linear(hidden_size, hidden_size)
-#
-#     def forward(self, q, k, v):
-#         ks = self.KW(k)  # Batch * N * opt.hidden_dim
-#         qs = self.QW(q)  # Batch * N * opt.hidden_dim
-#         sims = torch.bmm(qs, ks.permute(0, 2, 1))  # Batch * N * N
-#         sims = torch.softmax(sims, dim=-1)
-#
-#         vs = self.VW(v)
-#         vs = torch.bmm(sims, vs)
-#
-#         return vs
-
 class bart_classifier(nn.Module):
 
     def __init__(self, num_labels, model_select, gen, dropout, dropoutrest):
@@ -225,8 +85,8 @@ class bart_classifier(nn.Module):
         self.dropout = nn.Dropout(dropout) if gen == 0 else nn.Dropout(dropoutrest)
         self.relu = nn.ReLU()
 
-        self.config = BartConfig.from_pretrained('D:\\wcl\\TTS-main加对比学习元学习\\TTS-main\\TTS_zeroshot\\bart')
-        self.bart = Encoder.from_pretrained("D:\\wcl\\TTS-main加对比学习元学习\\TTS-main\\TTS_zeroshot\\bart")
+        self.config = BartConfig.from_pretrained('path/bart')
+        self.bart = Encoder.from_pretrained("path/bart")
         self.bart.pooler = None
         self.linear = nn.Linear(self.bart.config.hidden_size * 2, self.bart.config.hidden_size)
         self.out = nn.Linear(self.bart.config.hidden_size, num_labels)
@@ -246,7 +106,6 @@ class bart_classifier(nn.Module):
         cl_atten_masks = torch.cat([x_atten_masks, x_atten_masks], dim=0)
         last_hidden = self.bart(input_ids=cl_input_ids, attention_mask=cl_atten_masks)
 
-        # 调整了注意力掩码中与特定结束标记对应的位置，以控制模型在处理输入序列时的注意力分布
         eos_token_ind = cl_input_ids.eq(
             self.config.eos_token_id).nonzero()  # tensor([[0,4],[0,5],[0,11],[1,2],[1,3],[1,6]...])
 
@@ -298,21 +157,3 @@ class bart_classifier(nn.Module):
         # out1 = torch.add(out, att)
         return out, features
 
-# class ATN(nn.Module):
-#     def __init__(self) -> None:
-#         super(ATN, self).__init__()
-#         self.dropout = nn.Dropout(0.2)
-#         self.QW = nn.Linear(self.bart.config.hidden_size, self.bart.config.hidden_size)
-#         self.KW = nn.Linear(self.bart.config.hidden_size, self.bart.config.hidden_size)
-#         self.VW = nn.Linear(self.bart.config.hidden_size, self.bart.config.hidden_size)
-#
-#     def forward(self, q, k, v):
-#         ks = self.KW(k)  # Batch * N * opt.hidden_dim
-#         qs = self.QW(q)  # Batch * N * opt.hidden_dim
-#         sims = torch.bmm(qs, ks.permute(0, 2, 1))  # Batch * N * N
-#         sims = torch.softmax(sims, dim=-1)
-#
-#         vs = self.VW(v)
-#         vs = torch.bmm(sims, vs)
-#
-#         return vs
