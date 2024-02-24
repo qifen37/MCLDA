@@ -85,8 +85,8 @@ class bart_classifier(nn.Module):
         self.dropout = nn.Dropout(dropout) if gen == 0 else nn.Dropout(dropoutrest)
         self.relu = nn.ReLU()
 
-        self.config = BartConfig.from_pretrained('path/bart')
-        self.bart = Encoder.from_pretrained("path/bart")
+        self.config = BartConfig.from_pretrained('bart')
+        self.bart = Encoder.from_pretrained("bart")
         self.bart.pooler = None
         self.linear = nn.Linear(self.bart.config.hidden_size * 2, self.bart.config.hidden_size)
         self.out = nn.Linear(self.bart.config.hidden_size, num_labels)
