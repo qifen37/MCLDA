@@ -39,10 +39,11 @@
   │--VAST
   |--SEM16
   |--WT-WT
+README.md
 ```
 
 ---
 
 ## Train:
 
-python ./train_model.py
+python ./src/train_model.py
