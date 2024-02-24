@@ -43,7 +43,7 @@ def data_helper_bert(x_train_all,x_val_all,x_test_all,model_select,config):
     if model_select == 'Bertweet':
         tokenizer = BertweetTokenizer.from_pretrained("vinai/bertweet-base", normalization=True)
     elif model_select == 'Bart':
-        tokenizer = BartTokenizer.from_pretrained("D:\\wcl\\TTS-main加对比学习元学习\\TTS-main\\TTS_zeroshot\\bart-base", normalization=True)
+        tokenizer = BartTokenizer.from_pretrained("bart-base", normalization=True)
     elif model_select == 'Bert':
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
 
