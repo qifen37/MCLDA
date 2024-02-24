@@ -121,8 +121,8 @@ def compute_performance(preds,y,trainvaltest,step,args,seed):
     ###############################################################################################
     # y_true = out_label_ids
     # y_pred = preds
-    results_twoClass = precision_recall_fscore_support(y_train2_np, preds_np, average=None)#包含了每个类别的精确度、召回率、F1分数和支持数。
-    results_weighted = precision_recall_fscore_support(y_train2_np, preds_np, average='macro')#包含了宏平均的精确度、召回率、F1分数和支持数。
+    results_twoClass = precision_recall_fscore_support(y_train2_np, preds_np, average=None)
+    results_weighted = precision_recall_fscore_support(y_train2_np, preds_np, average='macro')
     print("results_weighted:",results_weighted)
     result_overall = [results_weighted[0],results_weighted[1],results_weighted[2]]
     result_against = [results_twoClass[0][0],results_twoClass[1][0],results_twoClass[2][0]]
@@ -152,64 +152,24 @@ def compute_performance(preds,y,trainvaltest,step,args,seed):
     return results_weighted[2],result_one_sample
 
 def run_classifier():
-
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('-c', '--config_file', help='Name of the cofig data file', required=False)
-    # parser.add_argument('-g', '--gen', help='Generation number of student model', required=False)
-    # parser.add_argument('-s', '--seed', help='Random seed', required=False)
-    # parser.add_argument('-d', '--dropout', help='Dropout rate', required=False)
-    # parser.add_argument('-d2', '--dropoutrest', help='Dropout rate for rest generations', required=False)
-    # parser.add_argument('-train', '--train_data', help='Name of the training data file', required=False)
-    # parser.add_argument('-dev', '--dev_data', help='Name of the dev data file', default=None, required=False)
-    # parser.add_argument('-test', '--test_data', help='Name of the test data file', default=None, required=False)
-    # parser.add_argument('-kg', '--kg_data', help='Name of the kg test data file', default=None, required=False)
-    # parser.add_argument('-clipgrad', '--clipgradient', type=str, default='True',
-    #                     help='whether clip gradient when over 2', required=False)
-    # parser.add_argument('-step', '--savestep', type=int, default=1, help='whether clip gradient when over 2',
-    #                     required=False)
-    # parser.add_argument('-p', '--percent', type=int, default=1, help='whether clip gradient when over 2',
-    #                     required=False)
-    # parser.add_argument('-es_step', '--earlystopping_step', type=int, default=1,
-    #                     help='whether clip gradient when over 2', required=False)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config_file', help='Name of the cofig data file', default='../config/config-bert.txt',required=False)
     parser.add_argument('-g', '--gen', help='Generation number of student model', default=1,required=False)
     parser.add_argument('-s', '--seed', help='Random seed', default=3,required=False)
     parser.add_argument('-d', '--dropout', help='Dropout rate', default=0.1,required=False)
     parser.add_argument('-d2', '--dropoutrest', help='Dropout rate for rest generations', default=0.25,required=False)
-    # parser.add_argument('-train', '--train_data', help='Name of the training data file', default='../data/text_entailment/raw_train_all_onecol.csv',required=False)
-    # parser.add_argument('-dev', '--dev_data', help='Name of the dev data file', default='../data/text_entailment/raw_val_all_onecol.csv', required=False)
-    # parser.add_argument('-test', '--test_data', help='Name of the test data file', default='../data/text_entailment/raw_test_all_onecol.csv', required=False)
-    # parser.add_argument('-kg', '--kg_data', help='Name of the kg test data file', default='../data/text_entailment/raw_train_all_subset_kg_epoch_led_onecol.csv', required=False)
-    # parser.add_argument('-train', '--train_data', help='Name of the training data file',default='../data/text_entailment/vast_train.csv', required=False)
-    # parser.add_argument('-dev', '--dev_data', help='Name of the dev data file', default='../data/text_entailment/vast_dev.csv', required=False)
-    # parser.add_argument('-test', '--test_data', help='Name of the test data file',default='../data/text_entailment/vast_test.csv', required=False)
-    # parser.add_argument('-kg', '--kg_data', help='Name of the kg test data file',default='../data/text_entailment/vast_train_kg.csv', required=False)
-    # parser.add_argument('-train', '--train_data', help='Name of the training data file',
-    #                     default='../data/HC_train.csv', required=False)
-    # parser.add_argument('-dev', '--dev_data', help='Name of the dev data file',
-    #                     default='../data/HC_dev.csv', required=False)
-    # parser.add_argument('-test', '--test_data', help='Name of the test data file',
-    #                     default='../data/HC_test.csv', required=False)
-    # parser.add_argument('-kg', '--kg_data', help='Name of the kg test data file',
-    #                     default='../data/HC_train_kg_all.csv', required=False)
     parser.add_argument('-train', '--train_data', help='Name of the training data file',
                         default='../data/VAST/final/vast_train.csv', required=False)
     parser.add_argument('-dev', '--dev_data', help='Name of the dev data file',
                         default='../data/VAST/final/vast_dev.csv', required=False)
     parser.add_argument('-test', '--test_data', help='Name of the test data file',
                         default='../data/VAST/final/vast_test.csv', required=False)
-    # parser.add_argument('-kg', '--kg_data', help='Name of the kg test data file',
-    #                     default='../data/text_entailment/HC_train_kg.csv', required=False)
     parser.add_argument('-clipgrad', '--clipgradient', type=str, default='True', help='whether clip gradient when over 2', required=False)
     parser.add_argument('-step', '--savestep', type=int, default=3, help='whether clip gradient when over 2', required=False)
     parser.add_argument('-p', '--percent', type=int, default=100, help='whether clip gradient when over 2', required=False)
     parser.add_argument('-es_step', '--earlystopping_step', type=int, default=5, help='whether clip gradient when over 2', required=False)
 
     args = vars(parser.parse_args())
-
-
-
 
     # writer = SummaryWriter('./tensorboard/')
 
@@ -321,14 +281,6 @@ def run_classifier():
         print("clipgradient:",args['clipgradient']=='True')
         print(100*"#")
 
-        # model.eval()
-        # with torch.no_grad():
-        #     preds, loss_train = model_utils.model_preds(trainloader, model, device, loss_function)
-        #     train_writer.add_scalar('loss', sum(loss_train) / len(loss_train), 0)
-        #     preds, loss_val = model_utils.model_preds(valloader, model, device, loss_function)
-        #     val_writer.add_scalar('loss', sum(loss_val) / len(loss_val), 0)
-        #     preds, loss_test = model_utils.model_preds(testloader, model, device, loss_function)
-        #     test_writer.add_scalar('loss', sum(loss_test) / len(loss_test), 0)
         step = 0
         # start training
         for epoch in range(0, int(config['total_epochs'])):
@@ -421,13 +373,6 @@ def run_classifier():
                         test_f1_favor.append(f1_favor)
                         test_f1_average.append(f1_average)
 
-                        # # kg eval
-                        # preds, loss_kg = model_utils.model_preds(kg_testloader, model, device, loss_function,cl_loss_cunction)
-                        # rounded_preds = F.softmax(preds, dim=1)
-                        # _, indices = torch.max(rounded_preds, dim=1)
-                        # y_preds_kg = np.array(indices.cpu().numpy())
-                        # test_kg.append(y_preds_kg)
-
                         # early stopping
                         print("loss_val:",loss_val,"average is: ",sum(loss_val) / len(loss_val))
                         early_stopping(sum(loss_val) / len(loss_val), model)
@@ -500,20 +445,6 @@ def run_classifier():
         print(max(best_result))
         print(best_result)
         
-        # update the unlabeled kg file
-        # concat_text = pd.DataFrame()
-        # raw_text = pd.read_csv(args['kg_data'],usecols=[0], encoding='ISO-8859-1')
-        # raw_target = pd.read_csv(args['kg_data'],usecols=[1], encoding='ISO-8859-1')
-        # seen = pd.read_csv(args['kg_data'],usecols=[3], encoding='ISO-8859-1')
-        # concat_text = pd.concat([raw_text, raw_target, seen], axis=1)
-        # concat_text['Stance 1'] = test_kg[best_epoch].tolist()
-        # concat_text['Stance 1'].replace([0,1,2], ['AGAINST','FAVOR','NONE'], inplace = True)
-        # concat_text = concat_text.reindex(columns=['Tweet','Target 1','Stance 1','seen?'])
-        # # concat_text.to_csv("/home/yli300/EMNLP2022/data/raw_train_all_subset_kg_epoch_onecol.csv", index=False)
-        # print(100*"#")
-        # concat_text.to_csv(args['kg_data'], index=False)
-        # print(args['kg_data'],"save, done!")
-        # print(100*"#")
     # save to Google sheet
     save_result = []
     save_result.append(best_against)
@@ -523,11 +454,6 @@ def run_classifier():
     save_result.append(best_val_favor)
     save_result.append(best_val)
     print(save_result)# results on val set
-#     gc = gspread.service_account(filename='../../service_account_google.json')
-#     sh = gc.open("Stance_Aug").get_worksheet(sheet_num)
-#     row_num = len(sh.get_all_values())+1
-# #         sh.update('A{0}'.format(row_num), target_word_pair[target_index])
-#     sh.update('B{0}:O{1}'.format(row_num,row_num+30), save_result)#将列表中的数据依次写入到范围内的单元格中
 
 if __name__ == "__main__":
     run_classifier()
