@@ -39,7 +39,7 @@
   │--VAST
   |--SEM16
   |--WT-WT
-README.md
+--README.md
 ```
 
 ---
